@@ -131,7 +131,7 @@ class Simulator:
         self.lateral_controller = lat_cont  # "FixedTan" #"PureP" # "MPC"  #"Stanly" "PD
 
     def run(self):
-        car = vehicle(1.0, -2.0, -0.3)
+        car = vehicle(1.0, -3.0, -0.4)
         p_history_x = []
         p_history_y = []
         p_history_steer = []
@@ -567,10 +567,10 @@ class Simulator:
         
 
 if __name__ == '__main__':
-    sim1 = Simulator(set_vel=18, long_cont=" ",lat_cont="CurvatureFollow3")
+    sim1 = Simulator(set_vel=10, long_cont=" ",lat_cont="CurvatureFollow3")
     sim1.run()
 
-    sim2 = Simulator(set_vel=15, long_cont=" ",lat_cont="CurvatureFollow2")
+    sim2 = Simulator(set_vel=5, long_cont=" ",lat_cont="CurvatureFollow2")
     sim2.run()
 
     # sim15 = simulator(set_vel=15, long_cont=" ",lat_cont="FixedTan")
