@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 path_x = np.round(np.arange(0,250,3.0),8)
 # Y-direction path
 # IMPROVE METHOD FOR DLC STEP FUNCTION
-DLC_shift = 35
+DLC_shift = 30
 path_y = np.round(  (0 * 0.5*(1-np.sign(path_x-15-DLC_shift))) +
                     ((3.5/2*(1-np.cos(np.pi/30*(path_x-15-DLC_shift)))) * 0.25*(1+np.sign(path_x-15-DLC_shift))*(1-np.sign(path_x-45-DLC_shift))) +
                     (3.5 * 0.25*(1+np.sign(path_x-45-DLC_shift))*(1-np.sign(path_x-70-DLC_shift))) +
@@ -524,6 +524,29 @@ class Simulator:
                 # print(car.steering,"  psi: ",psi)
 
 
+
+            elif self.lateral_controller == "MPC_simple":
+                MPCacceleration = max(-self.max_acceleration, min(self.acceleration, self.max_acceleration))
+                MPCsteering = max(-self.max_steering, min(self.steering, self.max_steering))
+
+                self.velocity += self.acceleration * dt
+                self.velocity = max(0, min(self.velocity, self.max_velocity))
+
+                if self.steering:
+                    turning_radius = self.L / np.tan(self.steering)
+                    angular_velocity = self.velocity / turning_radius
+                else:
+                    angular_velocity = 0
+
+                self.angle += angular_velocity * dt
+                self.position_rear[0] += self.velocity * np.cos(self.angle) * dt
+                self.position_rear[1] += self.velocity * np.sin(self.angle) * dt
+
+                self.heading = self.angle
+                self.position = [self.Lr * np.cos(self.angle) + self.position_rear[0],
+                                 self.Lr * np.sin(self.angle) + self.position_rear[1]]
+
+
             # Vehicle physics model
             car.update_d(self.dt)
 
@@ -548,7 +571,7 @@ class Simulator:
         
 
 if __name__ == '__main__':
-    sim1 = Simulator(set_vel=10, long_cont=" ",lat_cont="CurvatureFollow3")
+    sim1 = Simulator(set_vel=5, long_cont=" ",lat_cont="CurvatureFollow3")
     sim1.run()
 
     sim2 = Simulator(set_vel=5, long_cont=" ",lat_cont="CurvatureFollow2")
@@ -589,16 +612,16 @@ if __name__ == '__main__':
     plt.legend(loc='upper right')
 
     plt.tight_layout(pad=0.0)
-
-    plt.figure(2)
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_K, "y-", label='K')
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
-    plt.xlabel("Distance traveled [m]")
-    plt.ylabel("Weight scale")
-    plt.title('Controller weights')
-    plt.xlim(0,200)
-    plt.legend(loc='upper right')
+    #
+    # plt.figure(2)
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_track_K, "y-", label='K')
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
+    # plt.xlabel("Distance traveled [m]")
+    # plt.ylabel("Weight scale")
+    # plt.title('Controller weights')
+    # plt.xlim(0,200)
+    # plt.legend(loc='upper right')
 
 
 
