@@ -157,20 +157,8 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        printing = False   # True
         while time < 40:
             time += self.dt
-
-            # if time>2:
-            #     car.steering = np.radians(20)
-            #     if time > 3:
-            #         car.steering = np.radians(-20)
-            #         if time > 4:
-            #            car.steering = np.radians(0.0)
-            #         if time > 2.7:
-            #             car.steering = np.radians(0.0)
-            #             if time > 3.5:
-            #                 car.steering = np.radians(1.0)
 
             if self.long_controller == "PD":  # TODO Longitudinal controller: Use this one!
                 Kp = 15
@@ -540,13 +528,6 @@ class Simulator:
             car.update_d(self.dt)
 
 
-            if printing == True:
-                print("Time: ",np.round(time,5)," Freq: ",self.dt," position: ",car.position," V: ",car.velocity,
-                        " A: ",car.acceleration," Steering: ",car.steering," Slip angle: ",car.beta)
-                if self.lateral_controller == "Pure":
-                    print("Steer: ",np.degrees(car.steering))
-                if self.long_controller == "P":
-                    print("v_des: ",p_desired_v)
 
             # Draw line after vehicle
             p_history_x.append(car.position[0])
@@ -573,35 +554,6 @@ if __name__ == '__main__':
     sim2 = Simulator(set_vel=5, long_cont=" ",lat_cont="CurvatureFollow2")
     sim2.run()
 
-    # sim15 = simulator(set_vel=15, long_cont=" ",lat_cont="FixedTan")
-    # sim15.run()
-
-    # sim20 = simulator(set_vel=20, long_cont=" ",lat_cont="FixedTan")
-    # sim20.run()
-
-    # plt.figure(2)
-    # plt.plot(sim5.temp_hist_index, sim5.temp_hist_error,"m-",label='At 5m/s',linewidth=2)
-    # plt.plot(sim10.temp_hist_index, sim10.temp_hist_error,"y-",label='At 10m/s',linewidth=2)
-    # # plt.plot(sim15.temp_hist_index, sim15.temp_hist_error,"r-",label='At 15m/s',linewidth=2) 
-    # # plt.plot(sim20.temp_hist_index, sim20.temp_hist_error,"g-",label='At 20m/s',linewidth=2)
-    # plt.xlabel("Distance traveled [m]")
-    # plt.ylabel("Error [m]")
-    # plt.axis([0,200,0,4])
-    # plt.title('Cross track error')
-    # plt.legend(loc='upper right')
-
-
-    # plt.figure(1)
-    # plt.plot(path_x , path_y,"b-",label='Desired Path',linewidth=3)
-    # plt.plot(sim5.temp_p_hist_x, sim5.temp_p_hist_y,"m-",label='Actual Path at 5m/s',linewidth=2)
-    # plt.plot(sim10.temp_p_hist_x, sim10.temp_p_hist_y,"y-",label='Actual Path at 10m/s',linewidth=2)
-    # # plt.plot(sim15.temp_p_hist_x, sim15.temp_p_hist_y,"r-",label='Actual Path at 15m/s',linewidth=2)
-    # # plt.plot(sim20.temp_p_hist_x, sim20.temp_p_hist_y,"g-",label='Actual Path at 20m/s',linewidth=2)
-    # plt.xlabel("Horizontal position [m]")
-    # plt.ylabel("Lateral position [m]")
-    # plt.title('Tangental Drive Position Controller')
-    # plt.axis([0,200,-5,5])#'scaled')#
-    # plt.legend(loc='lower right')
 
     plt.figure(1)
     plt.subplot(311)
@@ -610,8 +562,6 @@ if __name__ == '__main__':
     # plt.plot(path_x, 10 * path_k, "g.", label='Desired Path curvature', linewidth=3)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_y,"m-",label='CurvatureFollow3 at ##m/s',linewidth=2)
     # plt.plot(sim2.temp_p_hist_x, sim2.temp_p_hist_y,"r-",label='Actual Path at 18m/s CurvatureFollow',linewidth=2)
-    # plt.plot(sim15.temp_p_hist_x, sim15.temp_p_hist_y,"r-",label='Actual Path at 15m/s',linewidth=2)
-    # plt.plot(sim20.temp_p_hist_x, sim20.temp_p_hist_y,"g-",label='Actual Path at 20m/s',linewidth=2)
     plt.xlabel("Horizontal position [m]")
     plt.ylabel("Lateral position [m]")
     plt.title('Double Lange Change Maneuver')
@@ -621,8 +571,6 @@ if __name__ == '__main__':
     plt.subplot(312)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label='CurvatureFollow3 at ##m/s',linewidth=2)
     # plt.plot(sim2.temp_p_hist_x, sim2.temp_hist_error,"r-",label='CurvatureFollow2 at 18m/s',linewidth=2)
-    # plt.plot(sim15.temp_hist_index, sim15.temp_hist_error,"r-",label='At 15m/s',linewidth=2) 
-    # plt.plot(sim20.temp_hist_index, sim20.temp_hist_error,"g-",label='At 20m/s',linewidth=2)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Error [m]")
     plt.axis([0,200,0,3])
