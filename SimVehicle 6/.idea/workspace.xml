@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="87a8cd0a-3e97-4ad6-8b7b-cb117b7cc175" name="Default Changelist" comment="" />
+    <list default="true" id="87a8cd0a-3e97-4ad6-8b7b-cb117b7cc175" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,18 +18,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SimVehicle_06.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-77">
-              <caret line="449" column="25" lean-forward="true" selection-start-line="449" selection-start-column="25" selection-end-line="449" selection-end-column="25" />
+            <state relative-caret-position="224">
+              <caret line="127" column="30" lean-forward="true" selection-start-line="127" selection-start-column="30" selection-end-line="127" selection-end-column="30" />
               <folding>
                 <element signature="e#13#43#0" expanded="true" />
-                <element signature="e#5459#6170#0" />
-                <element signature="e#6248#7020#0" />
-                <element signature="e#7099#7673#0" />
-                <element signature="e#7783#9806#0" />
-                <element signature="e#9932#11668#0" />
-                <element signature="e#11806#13008#0" />
-                <element signature="e#13197#15380#0" />
-                <element signature="e#15569#18506#0" />
               </folding>
             </state>
           </provider>
@@ -53,11 +47,19 @@
       <find>p_history_y</find>
     </findStrings>
   </component>
+  <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="Heiko" />
+      </list>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/SimVehicle_06.py" />
         <option value="$PROJECT_DIR$/Vehicle_06.py" />
+        <option value="$PROJECT_DIR$/SimVehicle_06.py" />
       </list>
     </option>
   </component>
@@ -66,6 +68,7 @@
     <option name="width" value="1680" />
     <option name="height" value="1027" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -155,6 +158,21 @@
       <option name="presentableId" value="Default" />
       <updated>1562579856147</updated>
     </task>
+    <task id="LOCAL-00001" summary="SimVehicle">
+      <created>1567006224046</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1567006224046</updated>
+    </task>
+    <task id="LOCAL-00002" summary="SimVehicle">
+      <created>1567007639690</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1567007639690</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TodoView" selected-index="1">
@@ -170,8 +188,8 @@
     <frame x="0" y="23" width="1680" height="1027" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.315508" visible="true" weight="0.16033755" />
-      <window_info id="Structure" order="1" sideWeight="0.684492" side_tool="true" visible="true" weight="0.16033755" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.3141946" visible="true" weight="0.16033755" />
+      <window_info id="Structure" order="1" sideWeight="0.68580544" side_tool="true" visible="true" weight="0.16033755" />
       <window_info id="Favorites" order="2" sideWeight="0.58373207" side_tool="true" weight="0.16033755" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
@@ -180,7 +198,7 @@
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.4996986" weight="0.32941177" />
-      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info active="true" anchor="bottom" id="Version Control" order="7" visible="true" weight="0.32941177" />
       <window_info anchor="bottom" id="Terminal" order="8" sideWeight="0.49909583" weight="0.32941177" />
       <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.50090414" side_tool="true" weight="0.32941177" />
       <window_info anchor="bottom" id="Python Console" order="10" sideWeight="0.49909583" weight="0.32941177" />
@@ -188,6 +206,20 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
     </layout>
+  </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="SimVehicle" />
+    <option name="LAST_COMMIT_MESSAGE" value="SimVehicle" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -229,18 +261,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/SimVehicle_06.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-77">
-          <caret line="449" column="25" lean-forward="true" selection-start-line="449" selection-start-column="25" selection-end-line="449" selection-end-column="25" />
+        <state relative-caret-position="224">
+          <caret line="127" column="30" lean-forward="true" selection-start-line="127" selection-start-column="30" selection-end-line="127" selection-end-column="30" />
           <folding>
             <element signature="e#13#43#0" expanded="true" />
-            <element signature="e#5459#6170#0" />
-            <element signature="e#6248#7020#0" />
-            <element signature="e#7099#7673#0" />
-            <element signature="e#7783#9806#0" />
-            <element signature="e#9932#11668#0" />
-            <element signature="e#11806#13008#0" />
-            <element signature="e#13197#15380#0" />
-            <element signature="e#15569#18506#0" />
           </folding>
         </state>
       </provider>
