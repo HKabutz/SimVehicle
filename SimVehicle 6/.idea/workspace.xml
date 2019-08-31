@@ -19,8 +19,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/SimVehicle_06.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="720">
-              <caret line="615" column="19" lean-forward="true" selection-start-line="615" selection-start-column="19" selection-end-line="615" selection-end-column="19" />
+            <state relative-caret-position="627">
+              <caret line="525" lean-forward="true" selection-start-line="525" selection-end-line="525" />
               <folding>
                 <element signature="e#13#43#0" expanded="true" />
                 <element signature="e#5460#6171#0" />
@@ -31,6 +31,8 @@
                 <element signature="e#11807#13009#0" />
                 <element signature="e#13198#15381#0" />
                 <element signature="e#15570#18507#0" />
+                <element signature="e#18696#22942#0" />
+                <element signature="e#22571#25757#0" />
               </folding>
             </state>
           </provider>
@@ -39,8 +41,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Vehicle_06.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="166">
-              <caret line="66" column="8" lean-forward="true" selection-start-line="66" selection-start-column="8" selection-end-line="83" selection-end-column="124" />
+            <state relative-caret-position="373">
+              <caret line="60" column="86" lean-forward="true" selection-start-line="60" selection-start-column="8" selection-end-line="60" selection-end-column="86" />
               <folding>
                 <element signature="e#13#31#0" expanded="true" />
               </folding>
@@ -189,7 +191,14 @@
       <option name="project" value="LOCAL" />
       <updated>1567260827020</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="MPC with kinetic model">
+      <created>1567280101597</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1567280101597</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TodoView" selected-index="1">
@@ -211,7 +220,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49849308" weight="0.33056995" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4996986" weight="0.32941177" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4996986" weight="0.3284974" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.4986835" weight="0.3284974" />
@@ -263,7 +272,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="SimVehicle" />
-    <option name="LAST_COMMIT_MESSAGE" value="SimVehicle" />
+    <MESSAGE value="MPC with kinetic model" />
+    <option name="LAST_COMMIT_MESSAGE" value="MPC with kinetic model" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -295,8 +305,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Vehicle_06.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="166">
-          <caret line="66" column="8" lean-forward="true" selection-start-line="66" selection-start-column="8" selection-end-line="83" selection-end-column="124" />
+        <state relative-caret-position="373">
+          <caret line="60" column="86" lean-forward="true" selection-start-line="60" selection-start-column="8" selection-end-line="60" selection-end-column="86" />
           <folding>
             <element signature="e#13#31#0" expanded="true" />
           </folding>
@@ -305,8 +315,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/SimVehicle_06.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="720">
-          <caret line="615" column="19" lean-forward="true" selection-start-line="615" selection-start-column="19" selection-end-line="615" selection-end-column="19" />
+        <state relative-caret-position="627">
+          <caret line="525" lean-forward="true" selection-start-line="525" selection-end-line="525" />
           <folding>
             <element signature="e#13#43#0" expanded="true" />
             <element signature="e#5460#6171#0" />
@@ -317,6 +327,8 @@
             <element signature="e#11807#13009#0" />
             <element signature="e#13198#15381#0" />
             <element signature="e#15570#18507#0" />
+            <element signature="e#18696#22942#0" />
+            <element signature="e#22571#25757#0" />
           </folding>
         </state>
       </provider>

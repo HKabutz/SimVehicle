@@ -132,7 +132,7 @@ class Simulator:
         self.lateral_controller = lat_cont  # "FixedTan" #"PureP" # "MPC"  #"Stanly" "PD
 
     def run(self):
-        car = vehicle(30.0, -2.0, -0.0)
+        car = vehicle(1.0, -2.0, 0.10)
         p_history_x = []
         p_history_y = []
         p_history_steer = []
@@ -158,7 +158,7 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        while time < 15:
+        while time < 25:
             time += self.dt
 
             if self.long_controller == "PD":  # TODO Longitudinal controller: Use this one!
@@ -525,7 +525,6 @@ class Simulator:
                 # print(car.steering,"  psi: ",psi)
 
 
-
             elif self.lateral_controller == "MPC_simple":
                 # vehicle properties
                 M = 173
@@ -535,7 +534,7 @@ class Simulator:
                 Lf = 0.35  # m    CG to front axis length
                 Lr = L - Lf
 
-                MPC_dt = 0.1
+                MPC_dt = 0.3
                 MPC_horizon = 15
 
                 # Vehicle Position (front point)
@@ -587,7 +586,7 @@ class Simulator:
                         MPC_r_location = MPC_r_diff.argmin()
                         opt_J += np.abs(MPC_y_diff[MPC_r_location])
                         opt_a += np.abs(path_a[MPC_r_location]-mpc_angle)
-                        opt = opt_J + opt_a*4
+                        opt = opt_J + opt_a*2
                     return opt
 
 
@@ -637,14 +636,14 @@ if __name__ == '__main__':
     plt.xlabel("Horizontal position [m]")
     plt.ylabel("Lateral position [m]")
     plt.title('Double Lange Change Maneuver')
-    plt.axis([0,200,-20,20])#'scaled')#
+    plt.axis([0,100,-5,5])#'scaled')#
     plt.legend(loc='lower right')
 
     plt.subplot(312)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Error [m]")
-    plt.axis([0,200,0,3])
+    plt.axis([0,100,0,3])
     plt.title('Cross track error')
     plt.legend(loc='upper right')
 
@@ -655,7 +654,7 @@ if __name__ == '__main__':
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Steering angle in degrees")
     plt.title('Steering angle')
-    plt.axis([0,200,-20,20])
+    plt.axis([0,100,-20,20])
     plt.legend(loc='upper right')
 
     plt.tight_layout(pad=0.0)
