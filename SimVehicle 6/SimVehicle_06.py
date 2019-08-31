@@ -158,8 +158,9 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        while time < 25:
+        while time < 30:
             time += self.dt
+            print("\ntime: ",time )
 
             if self.long_controller == "PD":  # TODO Longitudinal controller: Use this one!
                 Kp = 15
@@ -586,7 +587,7 @@ class Simulator:
                         MPC_r_location = MPC_r_diff.argmin()
                         opt_J += np.abs(MPC_y_diff[MPC_r_location])
                         opt_a += np.abs(path_a[MPC_r_location]-mpc_angle)
-                        opt = opt_J + opt_a*2
+                        opt = opt_J + opt_a*4
                     return opt
 
 
@@ -598,7 +599,80 @@ class Simulator:
                 print(MPC_steer+car.steering)
                 car.set_steering(car.steering+MPC_steer, self.dt)
 
+            elif self.lateral_controller == "MPC_SS":
+                # vehicle properties
+                M = 173
+                V = car.velocity
+                C = 1400
+                L = 0.72  # m    Wheel base length
+                Lf = 0.35  # m    CG to front axis length
+                Lr = L - Lf
 
+                MPC_dt = 0.4
+                MPC_horizon = 10
+
+                # Vehicle Position (front point)
+                x_veh = car.position[0]
+                y_veh = car.position[1]
+                # Difference (distance) between vehicle and path points
+                x_diff = path_x - x_veh
+                y_diff = path_y - y_veh
+                r_diff = np.sqrt(x_diff ** 2 + y_diff ** 2)
+                # Error is given by location of distance between vehicle and closest point on path to vehicle
+                error_pos = r_diff.argmin()
+                error_veh = np.abs(y_diff[error_pos])
+                # History of error (for graphs)
+                hist_index.append(len(hist_index))
+                # hist_error.append(r_diff[error_pos])
+                hist_error.append(error_veh)  # only the y error is shown,
+                hist_error_x.append(x_veh)
+
+
+                MPC_x = x_veh
+                MPC_y = y_veh
+
+                def MPC_opt(a):
+                    opt_J = 0
+                    opt_a = 0
+                    mpc_angle = car.heading
+                    mpc_position_rear_x = -Lr*np.cos(car.heading)+MPC_x
+                    mpc_position_rear_y = -Lr*np.sin(car.heading)+MPC_y
+                    aS = car.steering
+                    for i in range(len(a)):
+                        aS += a[i]
+                        aS = max(-0.3, min(aS, 0.3))
+                        R = 1/(aS + 0.00000000000001) * (L+(Lr-Lf)*(M*V**2)/(2*C*L))
+                        angular_velocity = V/R
+                        mpc_angle_current = angular_velocity * MPC_dt
+
+                        dX = R*np.sin(mpc_angle_current)
+                        dY = R*(1-np.cos(mpc_angle_current))
+
+                        mpc_position_rear_x += np.cos(mpc_angle)*dX - np.sin(mpc_angle)*dY
+                        mpc_position_rear_y += np.sin(mpc_angle)*dX + np.cos(mpc_angle)*dY
+
+                        mpc_angle += mpc_angle_current
+
+                        MPC_X = Lr * np.cos(mpc_angle) + mpc_position_rear_x
+                        MPC_Y = Lr * np.sin(mpc_angle) + mpc_position_rear_y
+
+                        MPC_x_diff = path_x - MPC_X
+                        MPC_y_diff = path_y - MPC_Y
+                        MPC_r_diff = np.sqrt(MPC_x_diff ** 2 + MPC_y_diff ** 2)
+                        MPC_r_location = MPC_r_diff.argmin()
+                        opt_J += np.abs(MPC_y_diff[MPC_r_location]**2)
+                        opt_a += np.abs((path_a[MPC_r_location]-mpc_angle))
+                        opt = opt_J + opt_a*20
+                    return opt
+
+
+                initial = np.zeros(MPC_horizon)
+
+                MPC_steer_opt = opt.minimize(MPC_opt,initial,constraints=({'type':'ineq','fun':lambda a:a+0.1},{'type':'ineq','fun':lambda a:0.1-a}))
+                print(MPC_steer_opt.x)
+                MPC_steer = MPC_steer_opt.x[0]
+                print(MPC_steer+car.steering)
+                car.set_steering(car.steering+MPC_steer, self.dt)
 
 
             # Vehicle physics model
@@ -625,7 +699,7 @@ class Simulator:
         
 
 if __name__ == '__main__':
-    sim1 = Simulator(set_vel=5, long_cont=" ",lat_cont="MPC_simple")
+    sim1 = Simulator(set_vel=10, long_cont=" ",lat_cont="MPC_SS")  #  "MPC_simple"
     sim1.run()
 
 
@@ -636,14 +710,14 @@ if __name__ == '__main__':
     plt.xlabel("Horizontal position [m]")
     plt.ylabel("Lateral position [m]")
     plt.title('Double Lange Change Maneuver')
-    plt.axis([0,100,-5,5])#'scaled')#
+    plt.axis([0,200,-5,5])#'scaled')#
     plt.legend(loc='lower right')
 
     plt.subplot(312)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Error [m]")
-    plt.axis([0,100,0,3])
+    plt.axis([0,200,0,3])
     plt.title('Cross track error')
     plt.legend(loc='upper right')
 
@@ -654,7 +728,7 @@ if __name__ == '__main__':
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Steering angle in degrees")
     plt.title('Steering angle')
-    plt.axis([0,100,-20,20])
+    plt.axis([0,200,-20,20])
     plt.legend(loc='upper right')
 
     plt.tight_layout(pad=0.0)
