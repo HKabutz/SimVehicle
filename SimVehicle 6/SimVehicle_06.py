@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Driving specifications
 # X-direction path
-path_x = np.round(np.arange(0,250,1.0),8)
+path_x = np.round(np.arange(0,250,2.0),8)
 # Y-direction path
 # IMPROVE METHOD FOR DLC STEP FUNCTION
 DLC_shift = 30
@@ -251,7 +251,6 @@ class Simulator:
                     steer = steer - np.pi
                 car.set_steering(steer,self.dt)
                 print(np.degrees(steer))
-                # debug
                 # print(path_x[i_min], path_y[i_min], goal_d, alpha, car.heading)
 
             elif self.lateral_controller == "FixedTan":   # TODO Lateral controller: Simple tangental drive
@@ -699,7 +698,7 @@ class Simulator:
         
 
 if __name__ == '__main__':
-    sim1 = Simulator(set_vel=10, long_cont=" ",lat_cont="MPC_SS")  #  "MPC_simple"
+    sim1 = Simulator(set_vel=15, long_cont=" ",lat_cont="MPC_SS")  #  "MPC_simple"
     sim1.run()
 
 
