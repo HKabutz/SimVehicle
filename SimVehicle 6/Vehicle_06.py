@@ -9,8 +9,8 @@ class vehicle:
         self.velocity = 0.0                 # m/s
         self.angle = angle                  # rad
         self.heading = self.angle           # rad
-        self.L =0.72                       # m    Wheel base length
-        self.Lf = 0.35#0.35                      # m    CG to front axis length
+        self.L = 0.72                        # m    Wheel base length
+        self.Lf = 0.35  #  0.35             # m    CG to front axis length
         self.Lr = self.L-self.Lf            # m    CG to rear axis length
 
         self.max_velocity = 20              # m/s

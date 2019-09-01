@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 path_x = np.round(np.arange(0,250,2.0),8)
 # Y-direction path
 # IMPROVE METHOD FOR DLC STEP FUNCTION
-DLC_shift = 30
+DLC_shift = 20
 path_y = np.round(  (0 * 0.5*(1-np.sign(path_x-15-DLC_shift))) +
                     ((3.5/2*(1-np.cos(np.pi/30*(path_x-15-DLC_shift)))) * 0.25*(1+np.sign(path_x-15-DLC_shift))*(1-np.sign(path_x-45-DLC_shift))) +
                     (3.5 * 0.25*(1+np.sign(path_x-45-DLC_shift))*(1-np.sign(path_x-70-DLC_shift))) +
@@ -110,7 +110,7 @@ def wrap(x, a=-np.pi, b=np.pi):
 
 # Simulator
 class Simulator:
-    def __init__(self,set_vel=0,set_accel=0,set_steer=0.0,long_cont=" ",lat_cont=" "):
+    def __init__(self,set_vel=0.0,set_accel=0.0,set_steer=0.0,long_cont=" ",lat_cont=" "):
         self.freq = 15          # Frequency of calculations
         self.dt = 1/self.freq   # time interval between calculations
  
@@ -131,8 +131,24 @@ class Simulator:
         self.long_controller = long_cont    # " " #"PD"  #"PID"
         self.lateral_controller = lat_cont  # "FixedTan" #"PureP" # "MPC"  #"Stanly" "PD
 
-    def run(self):
-        car = vehicle(1.0, -2.0, 0.10)
+        self.xx = 1.0
+        self.yy = 0.0
+        self.aa = 0.0
+
+    def setProperties(self,xx=1.0,yy=0.0,aa=0.0,set_vel=0.0,set_accel=0.0,set_steer=0.0):
+        self.xx = xx
+        self.yy = yy
+        self.aa = aa
+        self.vel = set_vel
+        self.accel = set_accel
+        self.steer = set_steer
+
+    def run(self,opt_par=[0.0,0.0,0.0]):
+        opt_f = opt_par[0]
+        opt_psi = opt_par[1]
+        opt_g = opt_par[2]
+
+        car = vehicle(self.xx, self.yy, self.aa)
         p_history_x = []
         p_history_y = []
         p_history_steer = []
@@ -158,9 +174,9 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        while time < 30:
+        while time < 20:
             time += self.dt
-            print("\ntime: ",time )
+            #  print("time: ",time )
 
             if self.long_controller == "PD":  # TODO Longitudinal controller: Use this one!
                 Kp = 15
@@ -524,7 +540,6 @@ class Simulator:
                 hist_track_g.append(g)
                 # print(car.steering,"  psi: ",psi)
 
-
             elif self.lateral_controller == "MPC_simple":
                 # vehicle properties
                 M = 173
@@ -673,6 +688,101 @@ class Simulator:
                 print(MPC_steer+car.steering)
                 car.set_steering(car.steering+MPC_steer, self.dt)
 
+            # TODO (just for colour) Lateral Controller: Path curvature Model predict     4     2019-08-01
+            elif self.lateral_controller == "Opt_CFollow1":
+                # vehicle properties
+                M = 173
+                V = car.velocity
+                C = 1400
+                L = 0.72  # m    Wheel base length
+                Lf = 0.35  # m    CG to front axis length
+                Lr = L - Lf
+
+                lookClose = 0.1 * car.velocity
+                lookFar = 0.8 * car.velocity
+                lookRanges = 8  # Number of devisions in the look distance
+                lookChange = (lookFar - lookClose) / lookRanges
+                lookPoints = []
+                for ilook in range(lookRanges + 1):
+                    lookPoints.append(lookClose + ilook * lookChange)
+                lookPoints = np.array(lookPoints)
+
+                # Vehicle Position (front point)
+                x_veh = car.position[0]
+                y_veh = car.position[1]
+                # Difference (distance) between vehicle and path points
+                x_diff = path_x - x_veh
+                y_diff = path_y - y_veh
+                r_diff = np.sqrt(x_diff ** 2 + y_diff ** 2)
+                # Error is given by location of distance between vehicle and closest point on path to vehicle
+                error_pos = r_diff.argmin()
+                error_veh = np.abs(y_diff[error_pos])
+                # History of error (for graphs)
+                hist_index.append(len(hist_index))
+                # hist_error.append(r_diff[error_pos])
+                hist_error.append(error_veh)  # only the y error is shown,
+                hist_error_x.append(x_veh)
+                # but the overall error is used for calculations
+
+                # Calculate look ahead point error and position
+                lookPErrorPos = []
+                lookPError = []
+                lookPK = []
+                lookPAngle = []
+                for i in range(len(lookPoints)):
+                    x_veh_look = lookPoints[i] * np.cos(car.heading) + x_veh
+                    y_veh_look = lookPoints[i] * np.sin(car.heading) + y_veh
+                    x_diff_look = path_x - x_veh_look
+                    y_diff_look = path_y - y_veh_look
+                    r_diff_look = np.sqrt(x_diff_look ** 2 + y_diff_look ** 2)
+                    error_pos_look = r_diff_look.argmin()
+                    error_look = np.sign(y_diff_look[error_pos_look]) * r_diff_look[error_pos_look]
+
+                    KAtPoint = path_k[error_pos_look]
+                    angleAtPoint = path_a[error_pos_look]
+
+                    lookPErrorPos.append(error_pos_look)
+                    lookPError.append(error_look)
+                    lookPK.append(KAtPoint)
+                    lookPAngle.append(angleAtPoint)
+
+                #  sensitivity fit the controller results on the distance
+                lookPK = np.array(lookPK)
+                lookPError = np.array(lookPError)
+                lookPAngle = np.array(lookPAngle)
+
+                K = np.sum(lookPK * sensitivity(hCenter=lookRanges / 2, hScale=1, hOffset=0, size=lookRanges))
+                angle = np.sum(lookPAngle * sensitivity(hCenter=lookRanges / 3, hScale=1, hOffset=0, size=lookRanges))
+                errorlook = np.sum(lookPError * sensitivity(hCenter=lookRanges / 3, hScale=1, hOffset=0, size=lookRanges))
+
+                f = K * (L + (Lr - Lf) * (M * V ** 2) / (2 * C * L))  # dynamic steering function for curvature
+                psi = angle - car.heading  # Angle between the vehicle heading and the path tangental
+                g = errorlook  # TODO cross track error based steering function
+                h = 0  # TODO rate of change of heading angle - inertia based term
+
+                #  print('f: ',f,'   psi: ',psi, '   g: ',g)
+
+                opt_f = opt_par[0]
+                opt_psi = opt_par[1]
+
+                f = opt_f * f       #  3.0 * f
+                psi = opt_psi * psi    #  0.6 * psi
+                g = opt_g * g       #  0.02 * g
+
+                f = max(-0.3, min(f, 0.3))
+                psi = max(-0.3, min(psi, 0.3))
+                g = max(-0.3, min(g, 0.3))
+
+                steer = f + psi + g
+                if steer > np.pi / 2:
+                    steer = steer - np.pi
+                steer = max(-0.3, min(steer, 0.3))
+                car.set_steering(steer, self.dt)
+
+                hist_track_K.append(f)
+                hist_track_psi.append(psi)
+                hist_track_g.append(g)
+                # print(car.steering,"  psi: ",psi)
 
             # Vehicle physics model
             car.update_d(self.dt)
@@ -692,15 +802,45 @@ class Simulator:
         self.temp_p_hist_y = np.asarray(p_history_y)
         self.temp_p_hist_steer = np.asarray(p_history_steer)
 
-        self.temp_track_K = hist_track_K
-        self.temp_track_psi = hist_track_psi
-        self.temp_track_g = hist_track_g
-        
+        self.temp_track_K = np.array(hist_track_K)*57.3
+        self.temp_track_psi = np.array(hist_track_psi)*57.3
+        self.temp_track_g = np.array(hist_track_g)*57.3
+        opt_error = np.sum(np.array(hist_error))
+        return opt_error
+
+
+def simOptimize(opt_A):
+    sum_opt_error = []
+    vvv = np.array([7.5])
+    yyy = np.array([-1,0,1])
+    aaa = np.array([0,0.1])
+
+    # vvv = np.array([2, 5, 7.5, 10, 12.5, 15])
+    # yyy = np.array([-4, -2, -1, 0, 1, 2, 4])
+    # aaa = np.array([-0.2, -0.1, 0, 0.1, 0.2])
+
+    for VV in vvv:
+        for YY in yyy:
+            for AA in aaa:
+                simOpt = Simulator(set_vel=VV, long_cont=" ", lat_cont="Opt_CFollow1")
+                simOpt.setProperties(xx=1.0, yy=YY, aa=AA, set_vel=VV)
+                simOptError = simOpt.run(opt_par=opt_A)
+                print("X ", 1.0, "   Y ", YY, "   a ", AA, "   vel ", VV,"    param ",opt_A,"     Error ",simOptError)
+                sum_opt_error.append(simOptError)
+
+    sum_opt_error = np.sum(np.fabs(np.array(sum_opt_error)))
+    return sum_opt_error
+
 
 if __name__ == '__main__':
-    sim1 = Simulator(set_vel=15, long_cont=" ",lat_cont="MPC_SS")  #  "MPC_simple"
-    sim1.run()
+    initial = [3.0,0.6,0.06]
+    #Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
+    #print(Opt_CFollow)
 
+    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "MPC_simple"
+    sim1.setProperties(xx=1.0, yy=-1.0, aa=0.20, set_vel=8.50)
+    # sim1.run(opt_par=Opt_CFollow.x)
+    sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
 
     plt.figure(1)
     plt.subplot(311)
@@ -709,25 +849,28 @@ if __name__ == '__main__':
     plt.xlabel("Horizontal position [m]")
     plt.ylabel("Lateral position [m]")
     plt.title('Double Lange Change Maneuver')
-    plt.axis([0,200,-5,5])#'scaled')#
+    plt.axis([0,160,-5,5])#'scaled')#
     plt.legend(loc='lower right')
 
     plt.subplot(312)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Error [m]")
-    plt.axis([0,200,0,3])
+    plt.axis([0,160,0,3])
     plt.title('Cross track error')
     plt.legend(loc='upper right')
 
     plt.subplot(313)
-    plt.plot((0,200),(17,17),"g--")
-    plt.plot((0,200),(-17,-17), "g--")
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_steer,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s')
+    plt.plot((0,160),(17,17),"g--")
+    plt.plot((0,160),(-17,-17), "g--")
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_K, "y-", label='K')
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_steer,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=3)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Steering angle in degrees")
     plt.title('Steering angle')
-    plt.axis([0,200,-20,20])
+    plt.axis([0,160,-20,20])
     plt.legend(loc='upper right')
 
     plt.tight_layout(pad=0.0)
