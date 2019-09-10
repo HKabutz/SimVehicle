@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Driving specifications
 # X-direction path
-path_x = np.round(np.arange(0,250,2.0),8)
+path_x = np.round(np.arange(0,250,1.0),8)
 # Y-direction path
 # IMPROVE METHOD FOR DLC STEP FUNCTION
 DLC_shift = 20
@@ -32,8 +32,8 @@ def noise(path_array, noise_level):
 
 # plt.plot(path_x,path_y)
 # print(path_x)
-path_x = noise(path_x,0.01)
-path_y = noise(path_y,0.1)
+path_x = noise(path_x,0.3)
+path_y = noise(path_y,0.3)
 path_v = noise(path_v,0.01)
 # print(path_x)
 # plt.plot(path_x,path_y)
@@ -111,7 +111,7 @@ def wrap(x, a=-np.pi, b=np.pi):
 # Simulator
 class Simulator:
     def __init__(self,set_vel=0.0,set_accel=0.0,set_steer=0.0,long_cont=" ",lat_cont=" "):
-        self.freq = 15          # Frequency of calculations
+        self.freq = 10          # Frequency of calculations
         self.dt = 1/self.freq   # time interval between calculations
  
         self.vel = set_vel
@@ -166,6 +166,11 @@ class Simulator:
         hist_track_psi = []
         hist_track_g = []
 
+        self.MPC_t_x1 = []
+        MPC_t_x2 = []
+        self.MPC_t_y1 = []
+        MPC_t_y2 = []
+
         # initial condition
 
         time = 0
@@ -174,11 +179,11 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        while time < 20:
+        while time < 25:
             time += self.dt
             #  print("time: ",time )
 
-            if self.long_controller == "PD":  # TODO Longitudinal controller: Use this one!
+            if self.long_controller == "PD":  # Longitudinal controller: Use this one!
                 Kp = 15
                 Kd = 8
                 
@@ -229,7 +234,7 @@ class Simulator:
                 # #Kd*(v_diff[len(v_diff)-1]-v_diff[len(v_diff)-3])/(2*self.dt)
                 car.set_acceleration(a,self.dt)
 
-            if self.lateral_controller == "PureP":  # TODO Lateral controller: Pure Pursuit
+            if self.lateral_controller == "PureP":  # Lateral controller: Pure Pursuit
                 # Vehicle Position (rear point)
                 x_veh = car.position_rear[0]
                 y_veh = car.position_rear[1]
@@ -269,7 +274,7 @@ class Simulator:
                 print(np.degrees(steer))
                 # print(path_x[i_min], path_y[i_min], goal_d, alpha, car.heading)
 
-            elif self.lateral_controller == "FixedTan":   # TODO Lateral controller: Simple tangental drive
+            elif self.lateral_controller == "FixedTan":   #  Lateral controller: Simple tangental drive
                 # Vehicle Position (rear point)
                 x_veh = car.position_rear[0]
                 y_veh = car.position_rear[1]
@@ -306,7 +311,7 @@ class Simulator:
                 car.set_steering(steer,self.dt)
                 # print(steer)
 
-            elif self.lateral_controller == "Stanley":  # TODO Lateral Controller: Stanley front wheel steering control
+            elif self.lateral_controller == "Stanley":  # Lateral Controller: Stanley front wheel steering control
                 # Vehicle Position (front point)
                 x_veh = car.position_front[0]
                 y_veh = car.position_front[1]
@@ -330,10 +335,8 @@ class Simulator:
                     steer = steer - np.pi
                 car.set_steering(steer, self.dt)
                 # print(np.degrees(steer))
-                # debug
-                # print(path_x[i_min], path_y[i_min], goal_d, alpha, car.heading)
 
-            # TODO (just for colour) Lateral Controller: Path curvature Model predict     1      2019-07-12
+            # Lateral Controller: Path curvature Model predict     1      2019-07-12
             elif self.lateral_controller == "CurvatureFollow":
                 # vehicle properties
                 M = 173
@@ -373,8 +376,8 @@ class Simulator:
                 psi = angle - car.heading  # Angle between the vehicle heading and the path tangental
 
                 f = K * (L+(Lr-Lf)*(M*V**2)/(2*C*L))  # dynamic steering function for curvature
-                g = error_look  # TODO cross track error based steering function
-                h = 0  # TODO rate of change of heading angle - inertia based term
+                g = error_look  # cross track error based steering function
+                h = 0  # rate of change of heading angle - inertia based term
                 steer = 1*f + 0*g + 0*h + psi*1
                 if steer > np.pi / 2:
                     steer = steer - np.pi
@@ -382,7 +385,7 @@ class Simulator:
                 car.set_steering(steer, self.dt)
                 # print(car.steering,"  psi: ",psi)
 
-            # TODO (just for colour) Lateral Controller: Path curvature Model predict     2     2019-07-13
+            # Lateral Controller: Path curvature Model predict     2     2019-07-13
             elif self.lateral_controller == "CurvatureFollow2":
                 # vehicle properties
                 M = 173
@@ -436,8 +439,8 @@ class Simulator:
                 psi = angle - car.heading  #  Angle between the vehicle heading and the path tangental
                 f = K * (L+(Lr-Lf)*(M*V**2)/(2*C*L))  # dynamic steering function for curvature
                 f2 = K2 * (L + (Lr - Lf) * (M * V ** 2) / (2 * C * L))
-                g = error_look  # TODO cross track error based steering function
-                h = 0  # TODO rate of change of heading angle - inertia based term
+                g = error_look  # cross track error based steering function
+                h = 0  # rate of change of heading angle - inertia based term
                 steer = 1.5*f + 1.5*f2 + 0*g + 0*h + psi*1
                 if steer > np.pi / 2:
                     steer = steer - np.pi
@@ -445,7 +448,7 @@ class Simulator:
                 car.set_steering(steer, self.dt)
                 # print(car.steering,"  psi: ",psi)
 
-            # TODO (just for colour) Lateral Controller: Path curvature Model predict     3     2019-07-13
+            # Lateral Controller: Path curvature Model predict     3     2019-07-13
             elif self.lateral_controller == "CurvatureFollow3":
                 # vehicle properties
                 M = 173
@@ -516,8 +519,8 @@ class Simulator:
 
                 f = K * (L + (Lr - Lf) * (M * V ** 2) / (2 * C * L))  # dynamic steering function for curvature
                 psi = angle - car.heading  # Angle between the vehicle heading and the path tangental
-                g = errorlook       # TODO cross track error based steering function
-                h = 0               # TODO rate of change of heading angle - inertia based term
+                g = errorlook       # cross track error based steering function
+                h = 0               # rate of change of heading angle - inertia based term
 
                 #  print('f: ',f,'   psi: ',psi, '   g: ',g)
 
@@ -645,6 +648,9 @@ class Simulator:
                 MPC_x = x_veh
                 MPC_y = y_veh
 
+                MPC_t_x2 = []
+                MPC_t_y2 = []
+
                 def MPC_opt(a):
                     opt_J = 0
                     opt_a = 0
@@ -670,6 +676,9 @@ class Simulator:
                         MPC_X = Lr * np.cos(mpc_angle) + mpc_position_rear_x
                         MPC_Y = Lr * np.sin(mpc_angle) + mpc_position_rear_y
 
+                        MPC_t_x2.append(MPC_X)
+                        MPC_t_y2.append(MPC_Y)
+
                         MPC_x_diff = path_x - MPC_X
                         MPC_y_diff = path_y - MPC_Y
                         MPC_r_diff = np.sqrt(MPC_x_diff ** 2 + MPC_y_diff ** 2)
@@ -679,6 +688,8 @@ class Simulator:
                         opt = opt_J + opt_a*20
                     return opt
 
+                self.MPC_t_x1.append(MPC_t_x2)
+                self.MPC_t_y1.append(MPC_t_y2)
 
                 initial = np.zeros(MPC_horizon)
 
@@ -688,7 +699,7 @@ class Simulator:
                 print(MPC_steer+car.steering)
                 car.set_steering(car.steering+MPC_steer, self.dt)
 
-            # TODO (just for colour) Lateral Controller: Path curvature Model predict     4     2019-08-01
+            # Lateral Controller: Path curvature Model predict     4     2019-08-01
             elif self.lateral_controller == "Opt_CFollow1":
                 # vehicle properties
                 M = 173
@@ -699,7 +710,7 @@ class Simulator:
                 Lr = L - Lf
 
                 lookClose = 0.1 * car.velocity
-                lookFar = 0.8 * car.velocity
+                lookFar = 0.8 * car.velocity  # TODO Change the look ahead distance
                 lookRanges = 8  # Number of devisions in the look distance
                 lookChange = (lookFar - lookClose) / lookRanges
                 lookPoints = []
@@ -716,7 +727,7 @@ class Simulator:
                 r_diff = np.sqrt(x_diff ** 2 + y_diff ** 2)
                 # Error is given by location of distance between vehicle and closest point on path to vehicle
                 error_pos = r_diff.argmin()
-                error_veh = np.abs(y_diff[error_pos])
+                error_veh = y_diff[error_pos]  # deleted: np.abs()
                 # History of error (for graphs)
                 hist_index.append(len(hist_index))
                 # hist_error.append(r_diff[error_pos])
@@ -757,7 +768,7 @@ class Simulator:
 
                 f = K * (L + (Lr - Lf) * (M * V ** 2) / (2 * C * L))  # dynamic steering function for curvature
                 psi = angle - car.heading  # Angle between the vehicle heading and the path tangental
-                g = errorlook  # TODO cross track error based steering function
+                g = errorlook  # cross track error based steering function
                 h = 0  # TODO rate of change of heading angle - inertia based term
 
                 #  print('f: ',f,'   psi: ',psi, '   g: ',g)
@@ -765,9 +776,9 @@ class Simulator:
                 opt_f = opt_par[0]
                 opt_psi = opt_par[1]
 
-                f = opt_f * f       #  3.0 * f
-                psi = opt_psi * psi    #  0.6 * psi
-                g = opt_g * g       #  0.02 * g
+                f = opt_f * f       # 3.0 * f            TODO Imporve the feed-forward effect
+                psi = opt_psi * psi    # 0.6 * psi       TODO Make more stable for errors in point position
+                g = opt_g * g       # 0.02 * g           TODO Add integral term effect
 
                 f = max(-0.3, min(f, 0.3))
                 psi = max(-0.3, min(psi, 0.3))
@@ -838,14 +849,15 @@ if __name__ == '__main__':
     #print(Opt_CFollow)
 
     sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "MPC_simple"
-    sim1.setProperties(xx=1.0, yy=-1.0, aa=0.20, set_vel=8.50)
+    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.10, set_vel=7.50)
     # sim1.run(opt_par=Opt_CFollow.x)
     sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
 
     plt.figure(1)
     plt.subplot(311)
-    plt.plot(path_x, path_y,"b-",label='Desired Path',linewidth=3)
+    plt.plot(path_x, path_y,"b.",label='Desired Path',linewidth=3)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_y,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
+    #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
     plt.xlabel("Horizontal position [m]")
     plt.ylabel("Lateral position [m]")
     plt.title('Double Lange Change Maneuver')
@@ -853,10 +865,11 @@ if __name__ == '__main__':
     plt.legend(loc='lower right')
 
     plt.subplot(312)
+    plt.plot((0,160),(0,0),"g--")
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Error [m]")
-    plt.axis([0,160,0,3])
+    plt.axis([0,160,-2,2])
     plt.title('Cross track error')
     plt.legend(loc='upper right')
 
