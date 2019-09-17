@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Driving specifications
 # X-direction path
-path_x = np.round(np.arange(0,250,1.0),8)
+path_x = np.round(np.arange(0,250,0.20),8)
 # Y-direction path
 # IMPROVE METHOD FOR DLC STEP FUNCTION
 DLC_shift = 20
@@ -32,9 +32,11 @@ def noise(path_array, noise_level):
 
 # plt.plot(path_x,path_y)
 # print(path_x)
-path_x = noise(path_x,0.3)
-path_y = noise(path_y,0.3)
-path_v = noise(path_v,0.01)
+
+# path_x = noise(path_x,0.3)  # Adding noise to the path.
+# path_y = noise(path_y,0.3)
+# path_v = noise(path_v,0.01)
+
 # print(path_x)
 # plt.plot(path_x,path_y)
 # plt.show()
@@ -48,7 +50,6 @@ def gradient(point_a, point_b):
 
 def path_gradient(index_1, index_2):
     return gradient((path_x[index_2], path_y[index_2]), (path_x[index_1], path_y[index_1]))
-
 
 # path_a - Path gradient function in angle of path to horizontal
 path_len = len(path_x)
@@ -718,9 +719,12 @@ class Simulator:
                     lookPoints.append(lookClose + ilook * lookChange)
                 lookPoints = np.array(lookPoints)
 
+                x_noise_temp = sps.norm.rvs(loc=0,scale=0.3)
+                y_noise_temp = sps.norm.rvs(loc=0,scale=0.3)
                 # Vehicle Position (front point)
-                x_veh = car.position[0]
-                y_veh = car.position[1]
+                x_veh = car.position[0] + x_noise_temp
+                y_veh = car.position[1] + y_noise_temp
+
                 # Difference (distance) between vehicle and path points
                 x_diff = path_x - x_veh
                 y_diff = path_y - y_veh
@@ -801,8 +805,8 @@ class Simulator:
 
 
             # Draw line after vehicle
-            p_history_x.append(car.position[0])
-            p_history_y.append(car.position[1])
+            p_history_x.append(car.position[0]+x_noise_temp)
+            p_history_y.append(car.position[1]+y_noise_temp)
             p_history_steer.append(np.degrees(car.steering))
 
 
