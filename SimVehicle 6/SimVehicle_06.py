@@ -184,6 +184,9 @@ class Simulator:
             time += self.dt
             #  print("time: ",time )
 
+            x_noise_temp = sps.norm.rvs(loc=0, scale=0.3)
+            y_noise_temp = sps.norm.rvs(loc=0, scale=0.3)
+
             if self.long_controller == "PD":  # Longitudinal controller: Use this one!
                 Kp = 15
                 Kd = 8
@@ -719,8 +722,6 @@ class Simulator:
                     lookPoints.append(lookClose + ilook * lookChange)
                 lookPoints = np.array(lookPoints)
 
-                x_noise_temp = sps.norm.rvs(loc=0,scale=0.3)
-                y_noise_temp = sps.norm.rvs(loc=0,scale=0.3)
                 # Vehicle Position (front point)
                 x_veh = car.position[0] + x_noise_temp
                 y_veh = car.position[1] + y_noise_temp
