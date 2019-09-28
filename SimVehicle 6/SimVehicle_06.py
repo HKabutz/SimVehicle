@@ -184,8 +184,10 @@ class Simulator:
             time += self.dt
             #  print("time: ",time )
 
-            x_noise_temp = sps.norm.rvs(loc=0, scale=0.3)
-            y_noise_temp = sps.norm.rvs(loc=0, scale=0.3)
+            x_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
+            y_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
+            H_noise_temp = sps.norm.rvs(loc=0, scale=1)
+
 
             if self.long_controller == "PD":  # Longitudinal controller: Use this one!
                 Kp = 15
@@ -746,8 +748,8 @@ class Simulator:
                 lookPK = []
                 lookPAngle = []
                 for i in range(len(lookPoints)):
-                    x_veh_look = lookPoints[i] * np.cos(car.heading) + x_veh
-                    y_veh_look = lookPoints[i] * np.sin(car.heading) + y_veh
+                    x_veh_look = lookPoints[i] * np.cos(car.heading + H_noise_temp) + x_veh
+                    y_veh_look = lookPoints[i] * np.sin(car.heading + H_noise_temp) + y_veh
                     x_diff_look = path_x - x_veh_look
                     y_diff_look = path_y - y_veh_look
                     r_diff_look = np.sqrt(x_diff_look ** 2 + y_diff_look ** 2)
@@ -853,8 +855,8 @@ if __name__ == '__main__':
     #Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
     #print(Opt_CFollow)
 
-    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "MPC_simple"
-    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.10, set_vel=7.50)
+    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"
+    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.20, set_vel=3.00)
     # sim1.run(opt_par=Opt_CFollow.x)
     sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
 
