@@ -14,7 +14,7 @@ class vehicle:
         self.Lr = self.L-self.Lf            # m    CG to rear axis length
 
         self.max_velocity = 20              # m/s
-        self.max_acceleration = 3.0         # m/s^2
+        self.max_acceleration = 1.0         # m/s^2
         self.max_jerk = 3.0                 # m/s^3
         self.max_steering = 0.3             # 0.35rad = 20deg  0.3rad = 17deg  0.25rad = 14deg 0.2rad = 11.5deg
         self.max_steer_rate = 1             # rad/s
