@@ -167,6 +167,8 @@ class Simulator:
         hist_track_psi = []
         hist_track_g = []
 
+        diff_hist = [0, 0]
+
         self.MPC_t_x1 = []
         MPC_t_x2 = []
         self.MPC_t_y1 = []
@@ -184,9 +186,9 @@ class Simulator:
             time += self.dt
             #  print("time: ",time )
 
-            x_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
-            y_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
-            H_noise_temp = sps.norm.rvs(loc=0, scale=1)
+            x_noise_temp = sps.norm.rvs(loc=0, scale=0.1)
+            y_noise_temp = sps.norm.rvs(loc=0, scale=0.1)
+            H_noise_temp = sps.norm.rvs(loc=0, scale=0.6)
 
 
             if self.long_controller == "PD":  # Longitudinal controller: Use this one!
@@ -282,8 +284,8 @@ class Simulator:
 
             elif self.lateral_controller == "FixedTan":   #  Lateral controller: Simple tangental drive
                 # Vehicle Position (rear point)
-                x_veh = car.position_rear[0]
-                y_veh = car.position_rear[1]
+                x_veh = car.position_rear[0] + x_noise_temp
+                y_veh = car.position_rear[1] + y_noise_temp
                 # Lookahead r_rels and angle
                 look_min = 0.1  # 5  # 0.1
                 look_max = 3  # 20
@@ -293,7 +295,7 @@ class Simulator:
                 y_rel = path_y - y_veh
                 # Distance and angle between vehicle and path points
                 r_rel = np.sqrt(x_rel ** 2 + y_rel ** 2)
-                g_rel = wrap(car.heading - np.arctan2(y_rel, x_rel))
+                g_rel = wrap(car.heading + H_noise_temp - np.arctan2(y_rel, x_rel))
                 # HISTORY STUFF
                 hist_index.append(len(hist_index))
                 hist_error.append(np.min(r_rel))
@@ -316,6 +318,48 @@ class Simulator:
                     steer = steer - np.pi
                 car.set_steering(steer,self.dt)
                 # print(steer)
+
+                hist_track_K.append(steer)
+                hist_track_psi.append(0)
+                hist_track_g.append(0)
+
+            elif self.lateral_controller == "PID_follow":   #  Lateral controller: Simple tangental drive
+                # Vehicle Position (rear point)
+                x_veh = car.position_rear[0] + x_noise_temp
+                y_veh = car.position_rear[1] + y_noise_temp
+                # Lookahead r_rels and angle
+                look_min = 0.1  # 5  # 0.1
+                look_max = 3  # 20
+                look_angle = 1.4
+                # Difference (r_rel) between vehicle and path points
+                x_rel = path_x - x_veh
+                y_rel = path_y - y_veh
+                # Distance and angle between vehicle and path points
+                r_rel = np.sqrt(x_rel ** 2 + y_rel ** 2)
+                # HISTORY STUFF
+                hist_index.append(len(hist_index))
+                hist_error.append(y_rel[np.argmin(r_rel)])
+                hist_error_x.append(x_veh)
+
+                y_rel_min = y_rel[np.argmin(r_rel)]
+
+                Kp = 0.1
+                Kd = 0.3
+                Ki = 0.0
+                diff = y_rel_min
+                diff_hist.append(diff)
+                integrate = np.sum(np.array(diff_hist)) * self.dt
+                derivative = (diff_hist[-1] - diff_hist[-2]) / self.dt
+                steer = Kp * diff + Kd * derivative + Ki * integrate
+
+                if steer >np.pi/2:
+                    steer = steer - np.pi
+                car.set_steering(steer,self.dt)
+                # print(steer)
+
+                hist_track_K.append(Kp * diff)
+                hist_track_psi.append(Kd * derivative)
+                hist_track_g.append(Ki * integrate)
 
             elif self.lateral_controller == "Stanley":  # Lateral Controller: Stanley front wheel steering control
                 # Vehicle Position (front point)
@@ -340,6 +384,10 @@ class Simulator:
                 if steer > np.pi/2:
                     steer = steer - np.pi
                 car.set_steering(steer, self.dt)
+
+                hist_track_K.append(steer)
+                hist_track_psi.append(0)
+                hist_track_g.append(0)
                 # print(np.degrees(steer))
 
             # Lateral Controller: Path curvature Model predict     1      2019-07-12
@@ -774,7 +822,7 @@ class Simulator:
                 errorlook = np.sum(lookPError * sensitivity(hCenter=lookRanges / 3, hScale=1, hOffset=0, size=lookRanges))
 
                 f = K * (L + (Lr - Lf) * (M * V ** 2) / (2 * C * L))  # dynamic steering function for curvature
-                psi = angle - car.heading  # Angle between the vehicle heading and the path tangental
+                psi = angle - car.heading - H_noise_temp  # Angle between the vehicle heading and the path tangental
                 g = errorlook  # cross track error based steering function
                 h = 0  # TODO rate of change of heading angle - inertia based term
 
@@ -855,8 +903,8 @@ if __name__ == '__main__':
     #Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
     #print(Opt_CFollow)
 
-    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"
-    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.20, set_vel=3.00)
+    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="PID_follow")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"
+    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.30, set_vel=2.00)
     # sim1.run(opt_par=Opt_CFollow.x)
     sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
 
