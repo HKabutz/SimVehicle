@@ -343,14 +343,21 @@ class Simulator:
 
                 y_rel_min = y_rel[np.argmin(r_rel)]
 
+                # TODO Calculating the heading from previous results is not viable, as the derivative is critical for the heading.
+                # using the heading of the vehicle based on the current and previous position, a slight error in location
+                # has a large error in heading. Thus becoming very inaccurate.
                 Kp = 0.1
-                Kd = 0.3
+                Kd = 0.1
+                Kdh = -0.1
                 Ki = 0.0
+
                 diff = y_rel_min
                 diff_hist.append(diff)
                 integrate = np.sum(np.array(diff_hist)) * self.dt
                 derivative = (diff_hist[-1] - diff_hist[-2]) / self.dt
-                steer = Kp * diff + Kd * derivative + Ki * integrate
+                pid_heading = car.heading + H_noise_temp
+
+                steer = Kp * diff + Kd * derivative + Ki * integrate + Kdh * pid_heading
 
                 if steer >np.pi/2:
                     steer = steer - np.pi
@@ -359,7 +366,7 @@ class Simulator:
 
                 hist_track_K.append(Kp * diff)
                 hist_track_psi.append(Kd * derivative)
-                hist_track_g.append(Ki * integrate)
+                hist_track_g.append(Kdh * pid_heading)
 
             elif self.lateral_controller == "Stanley":  # Lateral Controller: Stanley front wheel steering control
                 # Vehicle Position (front point)
@@ -903,10 +910,12 @@ if __name__ == '__main__':
     #Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
     #print(Opt_CFollow)
 
-    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="PID_follow")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"
+    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="PID_follow")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"  "PID_follow"
     sim1.setProperties(xx=1.0, yy=1.0, aa=-0.30, set_vel=2.00)
     # sim1.run(opt_par=Opt_CFollow.x)
-    sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
+    # sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
+    sim1.run(opt_par=[0, 0.6, 0.2])
+
 
     plt.figure(1)
     plt.subplot(311)
