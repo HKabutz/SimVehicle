@@ -182,13 +182,13 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        while time < 25:
+        while time < 30:
             time += self.dt
             #  print("time: ",time )
 
-            x_noise_temp = sps.norm.rvs(loc=0, scale=0.1)
-            y_noise_temp = sps.norm.rvs(loc=0, scale=0.1)
-            H_noise_temp = sps.norm.rvs(loc=0, scale=0.6)
+            x_noise_temp = sps.norm.rvs(loc=0, scale=0.06)
+            y_noise_temp = sps.norm.rvs(loc=0, scale=0.06)
+            H_noise_temp = sps.norm.rvs(loc=0, scale=0.04)
 
 
             if self.long_controller == "PD":  # Longitudinal controller: Use this one!
@@ -329,7 +329,7 @@ class Simulator:
                 y_veh = car.position_rear[1] + y_noise_temp
                 # Lookahead r_rels and angle
                 look_min = 0.1  # 5  # 0.1
-                look_max = 3  # 20
+                look_max = 4  # 20
                 look_angle = 1.4
                 # Difference (r_rel) between vehicle and path points
                 x_rel = path_x - x_veh
@@ -857,8 +857,11 @@ class Simulator:
                 hist_track_g.append(g)
                 # print(car.steering,"  psi: ",psi)
 
-            # Vehicle physics model
-            car.update_d(self.dt)
+            phy_count = 0
+            while phy_count < 100:
+                # Vehicle physics model
+                car.update_d(self.dt*0.01)
+                phy_count += 1
 
 
 
@@ -911,12 +914,15 @@ if __name__ == '__main__':
     #print(Opt_CFollow)
 
     sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="PID_follow")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"  "PID_follow"
-    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.30, set_vel=2.00)
+    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.70, set_vel=1.00)
     # sim1.run(opt_par=Opt_CFollow.x)
     # sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
     sim1.run(opt_par=[0, 0.6, 0.2])
 
 
+
+    x_length = 30  # 160
+    y_length = 2  # 5
     plt.figure(1)
     plt.subplot(311)
     plt.plot(path_x, path_y,"b.",label='Desired Path',linewidth=3)
@@ -925,21 +931,21 @@ if __name__ == '__main__':
     plt.xlabel("Horizontal position [m]")
     plt.ylabel("Lateral position [m]")
     plt.title('Double Lange Change Maneuver')
-    plt.axis([0,160,-5,5])#'scaled')#
+    plt.axis([0,x_length,-y_length,y_length])#'scaled')#
     plt.legend(loc='lower right')
 
     plt.subplot(312)
-    plt.plot((0,160),(0,0),"g--")
+    plt.plot((0,x_length),(0,0),"g--")
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Error [m]")
-    plt.axis([0,160,-2,2])
+    plt.axis([0,x_length,-y_length,y_length])
     plt.title('Cross track error')
     plt.legend(loc='upper right')
 
     plt.subplot(313)
-    plt.plot((0,160),(17,17),"g--")
-    plt.plot((0,160),(-17,-17), "g--")
+    plt.plot((0,x_length),(17,17),"g--")
+    plt.plot((0,x_length),(-17,-17), "g--")
     plt.plot(sim1.temp_p_hist_x, sim1.temp_track_K, "y-", label='K')
     plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
     plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
@@ -947,7 +953,7 @@ if __name__ == '__main__':
     plt.xlabel("Distance traveled [m]")
     plt.ylabel("Steering angle in degrees")
     plt.title('Steering angle')
-    plt.axis([0,160,-20,20])
+    plt.axis([0,x_length,-20,20])
     plt.legend(loc='upper right')
 
     plt.tight_layout(pad=0.0)
