@@ -331,22 +331,22 @@ if __name__ == '__main__':
     plt.plot(sim1.temp_time, sim1.temp_time*0+1.5,"b--",label='Desired Path',linewidth=3)
     plt.plot(sim1.temp_time, sim1.temp_vel,"r-",label=sim1.long_controller+' ',linewidth=2)
     #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Vehicle Speed [m]")
-    plt.title('Vehicle speed controller')
+    plt.xlabel("Time [s]", fontsize=10)
+    plt.ylabel("Vehicle Speed [m]", fontsize=10)
+    plt.title('Vehicle speed controller', fontsize=12)
     # plt.axis([0,160,-5,5]) #'scaled')#
-    plt.legend(loc='lower right')
+    plt.legend(loc='lower right', fontsize=10)
 
     plt.subplot(212)
     #plt.plot(sim1.temp_time, sim1.temp_time * 0 + 1, "b--", label='Desired Path', linewidth=3)
     plt.plot(sim1.temp_time, sim1.temp_accel, "m-", label=sim1.long_controller + ' desired',linewidth=2)
     plt.plot(sim1.temp_time, sim1.temp_accel2, "g-", label=sim1.long_controller + ' actual',linewidth=2)
     #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
-    plt.xlabel("Time [s]")
-    plt.ylabel("Vehicle acceleration [m]")
-    plt.title('Vehicle speed controller acceleration')
+    plt.xlabel("Time [s]", fontsize=10)
+    plt.ylabel("Vehicle acceleration [m]", fontsize=10)
+    plt.title('Vehicle speed controller acceleration', fontsize=12)
     # plt.axis([0,160,-5,5]) #'scaled')#
-    plt.legend(loc='upper right')
+    plt.legend(loc='upper right', fontsize=10)
 
 
 

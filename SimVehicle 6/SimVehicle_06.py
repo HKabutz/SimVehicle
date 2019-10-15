@@ -186,10 +186,9 @@ class Simulator:
             time += self.dt
             #  print("time: ",time )
 
-            x_noise_temp = sps.norm.rvs(loc=0, scale=0.06)
-            y_noise_temp = sps.norm.rvs(loc=0, scale=0.06)
-            H_noise_temp = sps.norm.rvs(loc=0, scale=0.04)
-
+            x_noise_temp = 0  # sps.norm.rvs(loc=0, scale=0.06)
+            y_noise_temp = 0  # sps.norm.rvs(loc=0, scale=0.06)
+            H_noise_temp = 0  # sps.norm.rvs(loc=0, scale=0.04)
 
             if self.long_controller == "PD":  # Longitudinal controller: Use this one!
                 Kp = 15
@@ -349,7 +348,7 @@ class Simulator:
                 Kp = 0.1
                 Kd = 0.1
                 Kdh = -0.1
-                Ki = 0.0
+                Ki = 0.00
 
                 diff = y_rel_min
                 diff_hist.append(diff)
@@ -928,20 +927,20 @@ if __name__ == '__main__':
     plt.plot(path_x, path_y,"b.",label='Desired Path',linewidth=3)
     plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_y,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
     #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
-    plt.xlabel("Horizontal position [m]")
-    plt.ylabel("Lateral position [m]")
-    plt.title('Double Lange Change Maneuver')
+    plt.xlabel("Horizontal position [m]", fontsize=10)
+    plt.ylabel("Lateral position [m]", fontsize=10)
+    plt.title('Double Lange Change Maneuver', fontsize=12)
     plt.axis([0,x_length,-y_length,y_length])#'scaled')#
-    plt.legend(loc='lower right')
+    plt.legend(loc='lower right', fontsize=10)
 
     plt.subplot(312)
     plt.plot((0,x_length),(0,0),"g--")
     plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
-    plt.xlabel("Distance traveled [m]")
-    plt.ylabel("Error [m]")
+    plt.xlabel("Distance traveled [m]", fontsize=10)
+    plt.ylabel("Error [m]", fontsize=10)
     plt.axis([0,x_length,-y_length,y_length])
-    plt.title('Cross track error')
-    plt.legend(loc='upper right')
+    plt.title('Cross track error', fontsize=12)
+    plt.legend(loc='upper right', fontsize=10)
 
     plt.subplot(313)
     plt.plot((0,x_length),(17,17),"g--")
@@ -950,11 +949,11 @@ if __name__ == '__main__':
     plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
     plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
     plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_steer,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=3)
-    plt.xlabel("Distance traveled [m]")
-    plt.ylabel("Steering angle in degrees")
-    plt.title('Steering angle')
+    plt.xlabel("Distance traveled [m]", fontsize=10)
+    plt.ylabel("Steering angle in degrees", fontsize=10)
+    plt.title('Steering angle', fontsize=12)
     plt.axis([0,x_length,-20,20])
-    plt.legend(loc='upper right')
+    plt.legend(loc='upper right', fontsize=10)
 
     plt.tight_layout(pad=0.0)
 

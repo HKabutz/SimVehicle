@@ -17,7 +17,7 @@ class vehicle:
         self.max_acceleration = 1.0         # m/s^2
         self.max_jerk = 3.0                 # m/s^3
         self.max_steering = 0.3             # 0.35rad = 20deg  0.3rad = 17deg  0.25rad = 14deg 0.2rad = 11.5deg
-        self.max_steer_rate = 0.5             # rad/s
+        self.max_steer_rate = 0.8             # rad/s
         #? self.brake_deceleration = 10
         #? self.free_deceleration = 2
 
