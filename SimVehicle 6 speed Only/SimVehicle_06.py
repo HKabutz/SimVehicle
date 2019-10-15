@@ -2,6 +2,7 @@
 from Vehicle_06 import vehicle
 import numpy as np
 import scipy.stats as sps
+import pandas as pd
 import matplotlib.pyplot as plt
 
 # Driving specifications
@@ -133,19 +134,19 @@ class Simulator:
 
         time = 0
 
-        velll_desired = 1
-        car.velocity = self.vel
+        velll_desired = self.vel
+        car.velocity = 0
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
 
-        while time < 7:
+        while time < 10:
             time += self.dt
             #  print("time: ",time )
 
             x_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
             y_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
-            H_noise_temp = sps.norm.rvs(loc=0, scale=0.001)
+            H_noise_temp = 0 # sps.norm.rvs(loc=0, scale=0.3)
 
 
 
@@ -183,7 +184,7 @@ class Simulator:
 
 
             elif self.long_controller == "PID":  # Longitudinal controller: Use this one!
-                Kp = 5
+                Kp = 6.2
                 Kd = 0.9
                 Ki = 0.0
 
@@ -198,7 +199,7 @@ class Simulator:
                 v_history_path.append(p_desired_v)
                 v_history_x.append(car.velocity+H_noise_temp)
 
-                v_diff.append(1.5-car.velocity-H_noise_temp)
+                v_diff.append(velll_desired-car.velocity-H_noise_temp)
 
                 integral += v_diff[-1] * self.dt
 
@@ -322,31 +323,73 @@ if __name__ == '__main__':
     # print(Opt_CFollow)
 
     sim1 = Simulator(set_vel=0, long_cont="PID")
-    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=0.00)
+    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=1.00)
     # sim1.run(opt_par=Opt_CFollow.x)
-    sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
+    sim1.run()  # opt_par=[0.42296772, 0.36308098, 0.11522529]
+
+    sim2 = Simulator(set_vel=0, long_cont="PID")
+    sim2.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=2.00)
+    sim2.run()
+
+    sim3 = Simulator(set_vel=0, long_cont="PID")
+    sim3.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=5.00)
+    sim3.run()
+
+    sim4 = Simulator(set_vel=0, long_cont="PID")
+    sim4.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=10.00)
+    sim4.run()
+
+
+    pd_GPS_PosLog = pd.read_csv(r'SoftTarget_PosLog_2019-10-08-14-59-24comb.txt')
+    a_GPS_PosLog = np.array(pd_GPS_PosLog)
+    row_GPS_PosLog, col_GPS_PosLog = np.shape(a_GPS_PosLog)
+    print("PosLog size: ", row_GPS_PosLog)
+    pd_ControllerLog = pd.read_csv(r'SoftTarget_ControllerLog_2019-10-08-14-59-24comb.txt')
+    a_ControllerLog = np.array(pd_ControllerLog)
+    row_ControllerLog, col_ControllerLog = np.shape(a_ControllerLog)
+    print("Controller size: ", row_ControllerLog)
+    time = np.arange(0, (row_GPS_PosLog * 0.1), 0.1)
+    print("Time size: ", np.shape(time))
+
+
 
     plt.figure(1)
     plt.subplot(211)
-    plt.plot(sim1.temp_time, sim1.temp_time*0+1.5,"b--",label='Desired Path',linewidth=3)
-    plt.plot(sim1.temp_time, sim1.temp_vel,"r-",label=sim1.long_controller+' ',linewidth=2)
+    # plt.plot(sim1.temp_time, sim1.temp_vel,"r-",label='Simulated PI controller',linewidth=3)
+    # plt.plot(time, a_GPS_PosLog[:, 7] / 100, "m.", label="Actual GPS speed")
+    # plt.plot(sim1.temp_time, sim1.temp_time*0+1.5,"b--",label='Desired speed',linewidth=1.2)
+
+    plt.plot(sim1.temp_time, sim1.temp_vel,"-",label='1 m/s',linewidth=2.5)
+    plt.plot(sim1.temp_time, sim1.temp_time*0+1,"b--",linewidth=1.2) # ,label='Desired speed'
+    plt.plot(sim2.temp_time, sim2.temp_vel, "-", label='2 m/s', linewidth=2.5)
+    plt.plot(sim2.temp_time, sim2.temp_time * 0 + 2, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim3.temp_time, sim3.temp_vel, "-", label='5 m/s', linewidth=2.5)
+    plt.plot(sim3.temp_time, sim3.temp_time * 0 + 5, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim4.temp_time, sim4.temp_vel, "-", label='10 m/s', linewidth=2.5)
+    plt.plot(sim4.temp_time, sim4.temp_time * 0 + 10, "b--", linewidth=1.2)  # ,label='Desired speed'
+
     #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
-    plt.xlabel("Time [s]", fontsize=10)
-    plt.ylabel("Vehicle Speed [m]", fontsize=10)
-    plt.title('Vehicle speed controller', fontsize=12)
+    plt.xlabel("Time [s]", fontsize=8)
+    plt.ylabel("Vehicle Speed [m/s]", fontsize=8)
+    # plt.title('Vehicle velocity controller', fontsize=10)
+    plt.title('Simulated speed range of velocity controller', fontsize=10)
     # plt.axis([0,160,-5,5]) #'scaled')#
-    plt.legend(loc='lower right', fontsize=10)
+    plt.xticks(fontsize=8)
+    plt.yticks(fontsize=8)
+    plt.legend(loc='upper right', fontsize=7)
+    plt.savefig('img_VelocityControl_simulate_range.png',dpi=500, bbox_inches='tight')
+
 
     plt.subplot(212)
-    #plt.plot(sim1.temp_time, sim1.temp_time * 0 + 1, "b--", label='Desired Path', linewidth=3)
-    plt.plot(sim1.temp_time, sim1.temp_accel, "m-", label=sim1.long_controller + ' desired',linewidth=2)
-    plt.plot(sim1.temp_time, sim1.temp_accel2, "g-", label=sim1.long_controller + ' actual',linewidth=2)
-    #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
-    plt.xlabel("Time [s]", fontsize=10)
-    plt.ylabel("Vehicle acceleration [m]", fontsize=10)
-    plt.title('Vehicle speed controller acceleration', fontsize=12)
-    # plt.axis([0,160,-5,5]) #'scaled')#
-    plt.legend(loc='upper right', fontsize=10)
+    # #plt.plot(sim1.temp_time, sim1.temp_time * 0 + 1, "b--", label='Desired Path', linewidth=3)
+    # plt.plot(sim1.temp_time, sim1.temp_accel, "m-", label=sim1.long_controller + ' desired',linewidth=2)
+    # plt.plot(sim1.temp_time, sim1.temp_accel2, "g-", label=sim1.long_controller + ' actual',linewidth=2)
+    # #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
+    # plt.xlabel("Time [s]", fontsize=10)
+    # plt.ylabel("Vehicle acceleration [m]", fontsize=10)
+    # plt.title('Vehicle speed controller acceleration', fontsize=12)
+    # # plt.axis([0,160,-5,5]) #'scaled')#
+    # plt.legend(loc='upper right', fontsize=10)
 
 
 
@@ -373,10 +416,7 @@ if __name__ == '__main__':
     # plt.axis([0,160,-20,20])
     # plt.legend(loc='upper right')
     #
-    plt.tight_layout(pad=0.50)
-
-
-
+    # plt.tight_layout(pad=0.50)
 
     plt.show()
 
