@@ -140,7 +140,7 @@ class Simulator:
         car.steering = np.radians(self.steer)
 
 
-        while time < 10:
+        while time < 15:
             time += self.dt
             #  print("time: ",time )
 
@@ -185,8 +185,8 @@ class Simulator:
 
             elif self.long_controller == "PID":  # Longitudinal controller: Use this one!
                 Kp = 6.2
-                Kd = 0.9
-                Ki = 0.0
+                Kd = 0.1* velll_desired
+                Ki = 0.01
 
                 velll_error = velll_desired - car.velocity - H_noise_temp
                 velll_drive = 1 * velll_error
@@ -339,6 +339,13 @@ if __name__ == '__main__':
     sim4.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=10.00)
     sim4.run()
 
+    sim5 = Simulator(set_vel=0, long_cont="PID")
+    sim5.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=15.00)
+    sim5.run()
+
+    sim6 = Simulator(set_vel=0, long_cont="PID")
+    sim6.setProperties(xx=1.0, yy=1.0, aa=-0.00, set_vel=20.00)
+    sim6.run()
 
     pd_GPS_PosLog = pd.read_csv(r'SoftTarget_PosLog_2019-10-08-14-59-24comb.txt')
     a_GPS_PosLog = np.array(pd_GPS_PosLog)
@@ -359,14 +366,18 @@ if __name__ == '__main__':
     # plt.plot(time, a_GPS_PosLog[:, 7] / 100, "m.", label="Actual GPS speed")
     # plt.plot(sim1.temp_time, sim1.temp_time*0+1.5,"b--",label='Desired speed',linewidth=1.2)
 
-    plt.plot(sim1.temp_time, sim1.temp_vel,"-",label='1 m/s',linewidth=2.5)
-    plt.plot(sim1.temp_time, sim1.temp_time*0+1,"b--",linewidth=1.2) # ,label='Desired speed'
-    plt.plot(sim2.temp_time, sim2.temp_vel, "-", label='2 m/s', linewidth=2.5)
-    plt.plot(sim2.temp_time, sim2.temp_time * 0 + 2, "b--", linewidth=1.2)  # ,label='Desired speed'
-    plt.plot(sim3.temp_time, sim3.temp_vel, "-", label='5 m/s', linewidth=2.5)
-    plt.plot(sim3.temp_time, sim3.temp_time * 0 + 5, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim6.temp_time, sim6.temp_vel, "-", label='20 m/s', linewidth=2.5)
+    plt.plot(sim6.temp_time, sim6.temp_time * 0 + 20, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim5.temp_time, sim5.temp_vel, "-", label='15 m/s', linewidth=2.5)
+    plt.plot(sim5.temp_time, sim5.temp_time * 0 + 15, "b--", linewidth=1.2)  # ,label='Desired speed'
     plt.plot(sim4.temp_time, sim4.temp_vel, "-", label='10 m/s', linewidth=2.5)
     plt.plot(sim4.temp_time, sim4.temp_time * 0 + 10, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim3.temp_time, sim3.temp_vel, "-", label='5 m/s', linewidth=2.5)
+    plt.plot(sim3.temp_time, sim3.temp_time * 0 + 5, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim2.temp_time, sim2.temp_vel, "-", label='2 m/s', linewidth=2.5)
+    plt.plot(sim2.temp_time, sim2.temp_time * 0 + 2, "b--", linewidth=1.2)  # ,label='Desired speed'
+    plt.plot(sim1.temp_time, sim1.temp_vel, "-", label='1 m/s', linewidth=2.5)
+    plt.plot(sim1.temp_time, sim1.temp_time * 0 + 1, "b--", linewidth=1.2)  # ,label='Desired speed'
 
     #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
     plt.xlabel("Time [s]", fontsize=8)
@@ -377,7 +388,7 @@ if __name__ == '__main__':
     plt.xticks(fontsize=8)
     plt.yticks(fontsize=8)
     plt.legend(loc='upper right', fontsize=7)
-    plt.savefig('img_VelocityControl_simulate_range.png',dpi=500, bbox_inches='tight')
+    plt.savefig('img_VelocityControl_simulate_range_Other.png',dpi=500, bbox_inches='tight')
 
 
     plt.subplot(212)

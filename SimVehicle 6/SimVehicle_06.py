@@ -880,15 +880,15 @@ class Simulator:
         self.temp_track_K = np.array(hist_track_K)*57.3
         self.temp_track_psi = np.array(hist_track_psi)*57.3
         self.temp_track_g = np.array(hist_track_g)*57.3
-        opt_error = np.sum(np.array(hist_error))
+        opt_error = np.sum(np.fabs(np.array(hist_error))) + np.sum(np.fabs(np.asarray(p_history_steer)))
         return opt_error
 
 
 def simOptimize(opt_A):
     sum_opt_error = []
-    vvv = np.array([7.5])
-    yyy = np.array([-1,0,1])
-    aaa = np.array([0,0.1])
+    vvv = np.array([2.5,5,7.5,10,12.5,15,17.5])
+    yyy = np.array([-0.3,0,0.3])
+    aaa = np.array([0])
 
     # vvv = np.array([2, 5, 7.5, 10, 12.5, 15])
     # yyy = np.array([-4, -2, -1, 0, 1, 2, 4])
@@ -908,20 +908,20 @@ def simOptimize(opt_A):
 
 
 if __name__ == '__main__':
-    initial = [3.0,0.6,0.06]
-    #Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
-    #print(Opt_CFollow)
+    initial = [0.4,0.36,0.1]
+    Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
+    print(Opt_CFollow)
 
-    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="PID_follow")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"  "PID_follow"
-    sim1.setProperties(xx=1.0, yy=1.0, aa=-0.70, set_vel=1.00)
-    # sim1.run(opt_par=Opt_CFollow.x)
-    # sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
-    sim1.run(opt_par=[0, 0.6, 0.2])
+    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"  "PID_follow"
+    sim1.setProperties(xx=0.0, yy=0.20, aa=0.0, set_vel=10.00)
+    sim1.run(opt_par=Opt_CFollow.x)
+    #sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
+    # sim1.run(opt_par=[0, 0.6, 0.2])
 
 
 
-    x_length = 30  # 160
-    y_length = 2  # 5
+    x_length = 160
+    y_length = 5
     plt.figure(1)
     plt.subplot(311)
     plt.plot(path_x, path_y,"b.",label='Desired Path',linewidth=3)
