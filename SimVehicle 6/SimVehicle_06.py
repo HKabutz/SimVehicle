@@ -182,13 +182,13 @@ class Simulator:
         car.acceleration = self.accel
         car.steering = np.radians(self.steer)
 
-        while time < 30:
+        while ((time < 70) and (car.position[0]<160)):
             time += self.dt
             #  print("time: ",time )
 
-            x_noise_temp = 0  # sps.norm.rvs(loc=0, scale=0.06)
-            y_noise_temp = 0  # sps.norm.rvs(loc=0, scale=0.06)
-            H_noise_temp = 0  # sps.norm.rvs(loc=0, scale=0.04)
+            x_noise_temp =  0 # sps.norm.rvs(loc=0, scale=0.2)
+            y_noise_temp =  0 # sps.norm.rvs(loc=0, scale=0.2)
+            H_noise_temp =  0 # sps.norm.rvs(loc=0, scale=0.2)
 
             if self.long_controller == "PD":  # Longitudinal controller: Use this one!
                 Kp = 15
@@ -685,7 +685,7 @@ class Simulator:
                 Lf = 0.35  # m    CG to front axis length
                 Lr = L - Lf
 
-                MPC_dt = 0.4
+                MPC_dt = 0.3
                 MPC_horizon = 10
 
                 # Vehicle Position (front point)
@@ -736,8 +736,10 @@ class Simulator:
                         MPC_X = Lr * np.cos(mpc_angle) + mpc_position_rear_x
                         MPC_Y = Lr * np.sin(mpc_angle) + mpc_position_rear_y
 
-                        MPC_t_x2.append(MPC_X)
-                        MPC_t_y2.append(MPC_Y)
+                        # MPC_t_x2.append(MPC_X)
+                        # MPC_t_y2.append(MPC_Y)
+                        self.MPC_t_x1.append(MPC_X)
+                        self.MPC_t_y1.append(MPC_Y)
 
                         MPC_x_diff = path_x - MPC_X
                         MPC_y_diff = path_y - MPC_Y
@@ -748,19 +750,19 @@ class Simulator:
                         opt = opt_J + opt_a*20
                     return opt
 
-                self.MPC_t_x1.append(MPC_t_x2)
-                self.MPC_t_y1.append(MPC_t_y2)
+                # self.MPC_t_x1.append(MPC_t_x2)
+                # self.MPC_t_y1.append(MPC_t_y2)
 
                 initial = np.zeros(MPC_horizon)
 
-                MPC_steer_opt = opt.minimize(MPC_opt,initial,constraints=({'type':'ineq','fun':lambda a:a+0.1},{'type':'ineq','fun':lambda a:0.1-a}))
+                MPC_steer_opt = opt.minimize(MPC_opt,initial,constraints=({'type':'ineq','fun':lambda a:a+0.15},{'type':'ineq','fun':lambda a:0.15-a}))
                 print(MPC_steer_opt.x)
                 MPC_steer = MPC_steer_opt.x[0]
                 print(MPC_steer+car.steering)
                 car.set_steering(car.steering+MPC_steer, self.dt)
 
             # Lateral Controller: Path curvature Model predict     4     2019-08-01
-            elif self.lateral_controller == "Opt_CFollow1":
+            elif self.lateral_controller == "Opt_CFollow":
                 # vehicle properties
                 M = 173
                 V = car.velocity
@@ -857,9 +859,9 @@ class Simulator:
                 # print(car.steering,"  psi: ",psi)
 
             phy_count = 0
-            while phy_count < 100:
+            while phy_count < 10:
                 # Vehicle physics model
-                car.update_d(self.dt*0.01)
+                car.update_d(self.dt*0.1)
                 phy_count += 1
 
 
@@ -886,8 +888,8 @@ class Simulator:
 
 def simOptimize(opt_A):
     sum_opt_error = []
-    vvv = np.array([2.5,5,7.5,10,12.5,15,17.5])
-    yyy = np.array([-0.3,0,0.3])
+    vvv = np.array([2,6,10,14,18])
+    yyy = np.array([0])
     aaa = np.array([0])
 
     # vvv = np.array([2, 5, 7.5, 10, 12.5, 15])
@@ -897,63 +899,95 @@ def simOptimize(opt_A):
     for VV in vvv:
         for YY in yyy:
             for AA in aaa:
-                simOpt = Simulator(set_vel=VV, long_cont=" ", lat_cont="Opt_CFollow1")
+                simOpt = Simulator(set_vel=VV, long_cont=" ", lat_cont="Opt_CFollow")
                 simOpt.setProperties(xx=1.0, yy=YY, aa=AA, set_vel=VV)
                 simOptError = simOpt.run(opt_par=opt_A)
-                print("X ", 1.0, "   Y ", YY, "   a ", AA, "   vel ", VV,"    param ",opt_A,"     Error ",simOptError)
+                # print("X ", 1.0, "   Y ", YY, "   a ", AA, "   vel ", VV,"    param ",opt_A,"     Error ",simOptError)
                 sum_opt_error.append(simOptError)
 
     sum_opt_error = np.sum(np.fabs(np.array(sum_opt_error)))
+    print("Param ", opt_A, "     Error ", sum_opt_error)
     return sum_opt_error
 
 
 if __name__ == '__main__':
-    initial = [0.4,0.36,0.1]
-    Opt_CFollow = opt.minimize(simOptimize, initial, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
-    print(Opt_CFollow)
+    initial = [1.4,0.3,0.1]
+    # Opt_CFollow = opt.minimize(simOptimize, initial)#, constraints=({'type': 'ineq', 'fun': lambda opt_A: opt_A}, {'type': 'ineq', 'fun': lambda opt_A: 5-opt_A}))
+    # print(Opt_CFollow)
 
-    sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"  "PID_follow"
-    sim1.setProperties(xx=0.0, yy=0.20, aa=0.0, set_vel=10.00)
-    sim1.run(opt_par=Opt_CFollow.x)
-    #sim1.run(opt_par=[0.42296772, 0.36308098, 0.11522529])
-    # sim1.run(opt_par=[0, 0.6, 0.2])
+    # sim1 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow1")  # "Opt_CFollow1"   "MPC_simple"   "FixedTan"  "PID_follow"
+    # sim1.setProperties(xx=0.0, yy=-1, aa=0.2, set_vel=15.00)
+    # # sim1.run(opt_par=Opt_CFollow.x)
+    # sim1.run(opt_par=[1.39448872, 0.27046552, 0.08343246])  # [0.42296772, 0.36308098, 0.11522529]
+    # # sim1.run(opt_par=[0, 0.6, 0.2])
 
-
+    sim1 = Simulator(set_vel=0, long_cont=" ",lat_cont="Opt_CFollow")
+    sim1.setProperties(xx=0.0, yy=-0.5, aa=0.05, set_vel=2)
+    sim1.run(opt_par=[1.39448872, 0.27046552, 0.08343246])  # [0.42296772, 0.36308098, 0.11522529]    # [1.39448872, 0.27046552, 0.08343246]
+    sim2 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow")
+    sim2.setProperties(xx=0.0, yy=-0.5, aa=0.05, set_vel=6)
+    sim2.run(opt_par=[1.39448872, 0.27046552, 0.08343246])
+    sim3 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow")
+    sim3.setProperties(xx=0.0, yy=-0.5, aa=0.05, set_vel=10)
+    sim3.run(opt_par=[1.39448872, 0.27046552, 0.08343246])
+    sim4 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow")
+    sim4.setProperties(xx=0.0, yy=-0.5, aa=0.05, set_vel=14)
+    sim4.run(opt_par=[1.39448872, 0.27046552, 0.08343246])
+    sim5 = Simulator(set_vel=0, long_cont=" ", lat_cont="Opt_CFollow")
+    sim5.setProperties(xx=0.0, yy=-0.5, aa=0.05, set_vel=18)
+    sim5.run(opt_par=[1.39448872, 0.27046552, 0.08343246])
 
     x_length = 160
-    y_length = 5
+    y_length = 4
     plt.figure(1)
     plt.subplot(311)
-    plt.plot(path_x, path_y,"b.",label='Desired Path',linewidth=3)
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_y,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
-    #  plt.plot(sim1.MPC_t_x1,sim1.MPC_t_y1)
+    plt.plot(path_x, path_y,"b-",label='Desired',linewidth=3)
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_y,"m-",label=str(sim1.vel)+'m/s',linewidth=2)
+    plt.plot(sim2.temp_p_hist_x, sim2.temp_p_hist_y,"-",label =str(sim2.vel)+'m/s',linewidth=2)
+    plt.plot(sim3.temp_p_hist_x, sim3.temp_p_hist_y,"-",label =str(sim3.vel)+'m/s',linewidth=2)
+    plt.plot(sim4.temp_p_hist_x, sim4.temp_p_hist_y,"-",label =str(sim4.vel)+'m/s',linewidth=2)
+    plt.plot(sim5.temp_p_hist_x, sim5.temp_p_hist_y,"-",label =str(sim5.vel)+'m/s',linewidth=2)
+    # for i in range(20000,1400000,40000):
+    #     plt.plot(sim1.MPC_t_x1[i:i+10],sim1.MPC_t_y1[i:i+10],".")
+    # print(len(sim1.MPC_t_y1))
     plt.xlabel("Horizontal position [m]", fontsize=10)
     plt.ylabel("Lateral position [m]", fontsize=10)
-    plt.title('Double Lange Change Maneuver', fontsize=12)
-    plt.axis([0,x_length,-y_length,y_length])#'scaled')#
-    plt.legend(loc='lower right', fontsize=10)
-
-    plt.subplot(312)
-    plt.plot((0,x_length),(0,0),"g--")
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
-    plt.xlabel("Distance traveled [m]", fontsize=10)
-    plt.ylabel("Error [m]", fontsize=10)
-    plt.axis([0,x_length,-y_length,y_length])
-    plt.title('Cross track error', fontsize=12)
-    plt.legend(loc='upper right', fontsize=10)
+    plt.title('Double Lange Change Maneuver with Opt_Follow', fontsize=12)
+    plt.axis([0,x_length,-y_length/2,y_length])#'scaled')#
+    plt.legend(loc='lower right', fontsize=9)
 
     plt.subplot(313)
+    plt.plot((0,x_length),(0,0),"g--")
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=2)
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_hist_error,"m-",label=str(sim1.vel)+'m/s',linewidth=2)
+    plt.plot(sim2.temp_p_hist_x, sim2.temp_hist_error,"-",label =str(sim2.vel)+'m/s',linewidth=2)
+    plt.plot(sim3.temp_p_hist_x, sim3.temp_hist_error,"-",label =str(sim3.vel)+'m/s',linewidth=2)
+    plt.plot(sim4.temp_p_hist_x, sim4.temp_hist_error,"-",label =str(sim4.vel)+'m/s',linewidth=2)
+    plt.plot(sim5.temp_p_hist_x, sim5.temp_hist_error,"-",label =str(sim5.vel)+'m/s',linewidth=2)
+
+    plt.xlabel("Distance traveled [m]", fontsize=10)
+    plt.ylabel("Error [m]", fontsize=10)
+    plt.axis([0,x_length,-y_length/2,y_length/2])
+    plt.title('Cross track error', fontsize=12)
+    plt.legend(loc='upper right', fontsize=9)
+
+    plt.subplot(312)
     plt.plot((0,x_length),(17,17),"g--")
     plt.plot((0,x_length),(-17,-17), "g--")
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_K, "y-", label='K')
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
-    plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_steer,"m-",label=sim1.lateral_controller+' at '+str(sim1.vel)+'m/s',linewidth=3)
-    plt.xlabel("Distance traveled [m]", fontsize=10)
+    plt.plot((0, x_length), (0, 0), "b--")
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_track_K, "y-", label='K')
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_track_psi, "b-", label='psi')
+    # plt.plot(sim1.temp_p_hist_x, sim1.temp_track_g, "g-", label='g')
+    plt.plot(sim1.temp_p_hist_x, sim1.temp_p_hist_steer,"m-",label=str(sim1.vel)+'m/s',linewidth=2)
+    plt.plot(sim2.temp_p_hist_x, sim2.temp_p_hist_steer,"-",label =str(sim2.vel)+'m/s',linewidth=2)
+    plt.plot(sim3.temp_p_hist_x, sim3.temp_p_hist_steer,"-",label =str(sim3.vel)+'m/s',linewidth=2)
+    plt.plot(sim4.temp_p_hist_x, sim4.temp_p_hist_steer,"-",label =str(sim4.vel)+'m/s',linewidth=2)
+    plt.plot(sim5.temp_p_hist_x, sim5.temp_p_hist_steer,"-",label =str(sim5.vel)+'m/s',linewidth=2)
     plt.ylabel("Steering angle in degrees", fontsize=10)
+    plt.xlabel("Distance traveled [m]", fontsize=10)
     plt.title('Steering angle', fontsize=12)
     plt.axis([0,x_length,-20,20])
-    plt.legend(loc='upper right', fontsize=10)
+    plt.legend(loc='upper right', fontsize=9)
 
     plt.tight_layout(pad=0.0)
 
